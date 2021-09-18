@@ -1,4 +1,4 @@
-module github.com/yyxhgy/dtls
+module github.com/yyxhgy/dtls/v2
 
 go 1.16
 
