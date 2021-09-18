@@ -19,6 +19,8 @@ type MessageClientHello struct {
 	Random  Random
 	Cookie  []byte
 
+	SessionID []byte // TODO 添加anylink支持
+
 	CipherSuiteIDs     []uint16
 	CompressionMethods []*protocol.CompressionMethod
 	Extensions         []extension.Extension
@@ -75,6 +77,9 @@ func (m *MessageClientHello) Unmarshal(data []byte) error {
 	// rest of packet has variable width sections
 	currOffset := handshakeMessageClientHelloVariableWidthStart
 	currOffset += int(data[currOffset]) + 1 // SessionID
+
+	// TODO 添加SessionID
+	m.SessionID = data[handshakeMessageClientHelloVariableWidthStart+1 : currOffset]
 
 	currOffset++
 	if len(data) <= currOffset {

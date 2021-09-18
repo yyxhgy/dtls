@@ -162,6 +162,7 @@ func createConn(ctx context.Context, nextConn net.Conn, config *Config, isClient
 	hsCfg := &handshakeConfig{
 		localPSKCallback:            config.PSK,
 		localPSKIdentityHint:        config.PSKIdentityHint,
+		localCiscoCompatCallback:    config.CiscoCompat,
 		localCipherSuites:           cipherSuites,
 		localSignatureSchemes:       signatureSchemes,
 		extendedMasterSecret:        config.ExtendedMasterSecret,

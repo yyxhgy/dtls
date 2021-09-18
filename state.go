@@ -22,6 +22,7 @@ type State struct {
 	srtpProtectionProfile SRTPProtectionProfile // Negotiated SRTPProtectionProfile
 	PeerCertificates      [][]byte
 	IdentityHint          []byte
+	SessionID             []byte
 
 	isClient bool
 
@@ -50,6 +51,7 @@ type serializedState struct {
 	RemoteRandom          [handshake.RandomLength]byte
 	CipherSuiteID         uint16
 	MasterSecret          []byte
+	SessionID             []byte // TODO 添加 SessionID 支持
 	SequenceNumber        uint64
 	SRTPProtectionProfile uint16
 	PeerCertificates      [][]byte
@@ -76,6 +78,7 @@ func (s *State) serialize() *serializedState {
 		RemoteEpoch:           s.remoteEpoch.Load().(uint16),
 		CipherSuiteID:         uint16(s.cipherSuite.ID()),
 		MasterSecret:          s.masterSecret,
+		SessionID:             s.SessionID, // TODO 添加 SessionID 支持
 		SequenceNumber:        atomic.LoadUint64(&s.localSequenceNumber[epoch]),
 		LocalRandom:           localRnd,
 		RemoteRandom:          remoteRnd,
@@ -109,6 +112,7 @@ func (s *State) deserialize(serialized serializedState) {
 
 	// Set master secret
 	s.masterSecret = serialized.MasterSecret
+	s.SessionID = serialized.SessionID // TODO 添加 SessionID 支持
 
 	// Set cipher suite
 	s.cipherSuite = cipherSuiteForID(CipherSuiteID(serialized.CipherSuiteID), nil)

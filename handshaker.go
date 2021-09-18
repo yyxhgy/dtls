@@ -90,6 +90,7 @@ type handshakeFSM struct {
 type handshakeConfig struct {
 	localPSKCallback            PSKCallback
 	localPSKIdentityHint        []byte
+	localCiscoCompatCallback    PSKCallback               // TODO add cisco anyconnect support
 	localCipherSuites           []CipherSuite             // Available CipherSuites
 	localSignatureSchemes       []signaturehash.Algorithm // Available signature schemes
 	extendedMasterSecret        ExtendedMasterSecretType  // Policy for the Extended Master Support extension
@@ -179,6 +180,14 @@ func (s *handshakeFSM) Run(ctx context.Context, c flightConn, initialState hands
 		}
 		if err != nil {
 			return err
+		}
+
+		// TODO 添加 CiscoCompat 支持
+		if s.cfg.localCiscoCompatCallback != nil {
+			if s.currentFlight == flight4 && state == handshakeWaiting {
+				s.currentFlight = flight6
+				state = handshakePreparing
+			}
 		}
 	}
 }

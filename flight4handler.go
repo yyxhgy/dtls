@@ -211,6 +211,7 @@ func flight4Generate(c flightConn, state *State, cache *handshakeCache, cfg *han
 				Message: &handshake.MessageServerHello{
 					Version:           protocol.Version1_2,
 					Random:            state.localRandom,
+					SessionID:         state.SessionID,
 					CipherSuiteID:     &cipherSuiteID,
 					CompressionMethod: defaultCompressionMethods()[0],
 					Extensions:        extensions,
@@ -218,6 +219,20 @@ func flight4Generate(c flightConn, state *State, cache *handshakeCache, cfg *han
 			},
 		},
 	})
+
+	// TODO 添加 CiscoCompat 支持
+	if cfg.localCiscoCompatCallback != nil {
+		if !state.cipherSuite.IsInitialized() {
+			serverRandom := state.localRandom.MarshalFixed()
+			clientRandom := state.remoteRandom.MarshalFixed()
+
+			if err := state.cipherSuite.Init(state.masterSecret, clientRandom[:], serverRandom[:], false); err != nil {
+				return nil, &alert.Alert{Level: alert.Fatal, Description: alert.InternalError}, err
+			}
+			cfg.writeKeyLog(keyLogLabelTLS12, clientRandom[:], state.masterSecret)
+		}
+		return pkts, nil, nil
+	}
 
 	switch {
 	case state.cipherSuite.AuthenticationType() == CipherSuiteAuthenticationTypeCertificate:

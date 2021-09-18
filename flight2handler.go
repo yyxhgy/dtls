@@ -3,6 +3,7 @@ package dtls
 import (
 	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/pion/dtls/v2/pkg/protocol"
 	"github.com/pion/dtls/v2/pkg/protocol/alert"
@@ -38,6 +39,22 @@ func flight2Parse(ctx context.Context, c flightConn, state *State, cache *handsh
 	if !bytes.Equal(state.cookie, clientHello.Cookie) {
 		return 0, &alert.Alert{Level: alert.Fatal, Description: alert.AccessDenied}, errCookieMismatch
 	}
+
+	// TODO 添加 CiscoCompat 支持
+	if cfg.localCiscoCompatCallback != nil {
+		var err error
+		state.SessionID = clientHello.SessionID
+		if len(state.SessionID) == 0 {
+			err = fmt.Errorf("clientHello SessionID is nil")
+			return 0, &alert.Alert{Level: alert.Fatal, Description: alert.IllegalParameter}, err
+		}
+
+		state.masterSecret, err = cfg.localCiscoCompatCallback(state.SessionID)
+		if err != nil {
+			return 0, &alert.Alert{Level: alert.Fatal, Description: alert.IllegalParameter}, err
+		}
+	}
+
 	return flight4, nil, nil
 }
 
